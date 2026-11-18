@@ -1,3 +1,4 @@
+
 .env
 .env.*
 !.env.example
@@ -5,6 +6,7 @@
 .venv/
 __pycache__/
 *.pyc
+*.pyo
 
 answercheck.db
 answercheck.db-shm
