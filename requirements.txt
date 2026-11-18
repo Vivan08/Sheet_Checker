@@ -1,0 +1,10 @@
+Flask>=3.0
+opencv-python-headless>=4.9pytesseract>=0.3.13
+Pillow>=10.0
+numpy>=1.26
+nltk>=3.9
+scikit-learn>=1.5
+
+google-genai>=1.0.0
+python-dotenv>=1.0.1
+gunicorn

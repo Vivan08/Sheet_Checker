@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnswerCheck AI — Automated Answer Sheet Checking</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>.advanced-tools{padding:18px;margin:20px 0}.advanced-tools>summary{cursor:pointer;font-size:1rem;color:var(--text);padding:4px}.advanced-tools[open]>summary{margin-bottom:18px}.key-item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;border-bottom:1px solid rgba(128,128,128,.2)}.key-item span{flex:1;color:var(--muted)}</style>
+</head>
+<body>
+<div class="bg-slider">
+  <div class="bg-slide active" style="background-image:url('{{ url_for('static', filename='education-bg-1.jpg') }}')"></div>
+  <div class="bg-slide" style="background-image:url('{{ url_for('static', filename='education-bg-2.jpg') }}')"></div>
+  <div class="bg-slide" style="background-image:url('{{ url_for('static', filename='education-bg-3.jpg') }}')"></div>
+</div>
+<div class="bg-overlay"></div>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-icon">✦</div><div><strong>AnswerCheck <i>AI</i></strong><small>Smart Evaluation • Better Learning</small></div></div>
+  <nav>
+    <a class="active" href="#dashboard">⌂ <span>Dashboard</span></a>
+    <a href="#examinations">▤ <span>Examinations</span></a>
+    <a href="#evaluation">▣ <span>Evaluation</span></a>
+    <a href="#results">◴ <span>Results</span></a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sdg-card"><b>SDG 4</b><strong>Quality Education</strong><p>Faster assessment, consistent grading and rapid feedback.</p></div>
+    <div class="teacher"><span class="avatar">T</span><span><b>Teacher</b><small>Administrator</small></span></div>
+  </div>
+</aside>
+
+<main class="content">
+<header class="hero" id="dashboard">
+  <div><div class="eyebrow">AUTOMATED ASSESSMENT PLATFORM</div>
+    <h1>Automated Answer<br>Sheet Checking <em>System</em></h1>
+    <div class="hero-pills"><span>Digitize</span><b>•</b><span>Evaluate</span><b>•</b><span>Provide Instant Feedback</span></div>
+    <p>A Python-based system using OCR, image processing and NLP to digitize student responses, compare them with a teacher-provided marking scheme and generate consistent score reports.</p>
+  </div>
+  <div class="ready"><span></span> Backend Connected</div>
+</header>
+
+<section class="stats">
+  <div class="stat-card"><div class="stat-icon blue">▣</div><div><small>Total Evaluations</small><strong id="evalCount">0</strong><p>Stored in SQLite</p></div></div>
+  <div class="stat-card"><div class="stat-icon green">♙</div><div><small>Total Students</small><strong id="studentCount">0</strong><p>Unique students</p></div></div>
+  <div class="stat-card"><div class="stat-icon purple">◎</div><div><small>Average Accuracy</small><strong id="avgScore">—</strong><p>Automated score average</p></div></div>
+  <div class="stat-card"><div class="stat-icon orange">☆</div><div><small>Total Marks Awarded</small><strong id="totalMarks">0</strong><p>Across evaluations</p></div></div>
+</section>
+
+
+<details class="glass-card advanced-tools" id="ocr-workspace" style="margin:24px 0;padding:24px"><summary><strong>Advanced tools · OCR Workspace</strong> <span class="muted">Optional manual extraction utilities</span></summary>
+  <div class="card-title"><div class="title-icon purple-icon">⌁</div><div><h2>OCR Workspace</h2><p>Upload documents and let OCR populate questions, student details and answers directly.</p></div></div>
+  <div class="two-col" style="margin-top:18px">
+    <div class="upload-box"><div><b>① Question Paper OCR</b><span>Extract all numbered questions and marks</span></div><input type="file" id="questionPaperFile" accept=".jpg,.jpeg,.png,.webp,.bmp,.tif,.tiff"><button type="button" class="primary" id="questionOcrBtn">Extract & Populate Questions</button></div>
+    <div class="upload-box"><div><b>② Student Answer Sheet OCR</b><span>Extract student name, roll number and answers</span></div><input type="file" id="structuredAnswerFile" accept=".jpg,.jpeg,.png,.webp,.bmp,.tif,.tiff"><button type="button" class="primary" id="answerOcrBtn">Extract & Populate Student</button></div>
+    <div class="upload-box"><div><b>③ Master Answer Key OCR</b><span>Extract questions, model answers and marks; save as reusable schemes</span></div><input type="file" id="masterKeyFile" accept=".jpg,.jpeg,.png,.webp,.bmp,.tif,.tiff"><button type="button" class="primary" id="masterKeyOcrBtn">Extract Master Key</button></div>
+  </div>
+  <div id="masterKeyResults" class="ocr-results" style="margin-top:16px"><p class="muted">Upload a master answer key to extract and save reusable marking schemes.</p></div>
+  <div id="ocrWorkspaceStatus" class="ocr-status" aria-live="polite"></div>
+  <div class="two-col" style="margin-top:16px">
+    <div><h3>Detected Questions <span class="muted" id="questionCount"></span></h3><div id="detectedQuestions" class="ocr-results"><p class="muted">Upload a question paper to populate questions here.</p></div></div>
+    <div><h3>Detected Student Answers <span class="muted" id="answerCount"></span></h3><div id="detectedAnswers" class="ocr-results"><p class="muted">Upload an answer sheet to populate student details and answers here.</p></div></div>
+  </div>
+  <small class="muted">OCR results are editable/reviewable before evaluation. Printed and clearly written documents work best; always verify recognition.</small>
+</details>
+<section class="glass-card" id="examinations" style="margin:24px 0;padding:24px">
+ <div class="card-title"><div class="title-icon">▤</div><div><h2>Examinations</h2><p>Create an exam and connect its marking schemes before grading.</p></div></div>
+ <form id="examForm" class="key-form">
+  <input name="exam_name" placeholder="Examination name (e.g. Basic Science Midterm)" required>
+  <input name="subject" placeholder="Subject / course" required>
+  <input name="exam_date" type="date">
+  <button class="primary" type="submit">＋ Create Examination</button>
+ </form>
+ <div id="examList" class="key-list"></div>
+</section>
+<section class="glass-card" id="evaluation" style="margin:24px 0;padding:24px">
+ <div class="card-title"><div class="title-icon purple-icon">▣</div><div><h2>Evaluation</h2><p>Select an examination, upload its question paper plus a student answer sheet, and let Gemini Vision grade it.</p></div></div>
+ <label style="display:block;margin:14px 0">Examination<select id="activeExamSelect"><option value="">Select an examination</option></select></label>
+<section class="glass-card" id="gemini-paper-grading" style="margin:24px 0;padding:24px">
+  <h2>Gemini Vision — Grade a Complete Paper</h2>
+  <p class="muted">Upload BOTH the question paper and student answer sheet. Gemini reads the questions, printed marks, and handwriting directly from both documents; no OCR similarity is used. Results always require teacher review.</p>
+  <form id="geminiPaperForm" class="key-form">
+    <label>Question paper (image or PDF)<input id="geminiQuestionFile" name="question_paper" type="file" accept="image/*,.pdf" required></label>
+    <label>Student answer sheet (image or PDF)<input id="geminiPaperFile" name="answer_sheet" type="file" accept="image/*,.pdf" required></label>
+    <label>Marking scheme<select id="geminiKeySelect" name="answer_key_id"><option value="">Use all saved answer keys</option></select></label>
+    <button class="primary" id="geminiGradeBtn" type="submit">✦ Grade complete paper with Gemini</button>
+  </form>
+  <div id="geminiPaperStatus" class="muted" style="margin-top:12px"></div>
+  <div id="geminiPaperResults"></div>
+</section>
+
+</section>
+<details class="advanced-tools glass-card"><summary><strong>Advanced · Individual answer evaluator</strong></summary>
+<section class="main-grid">
+<div class="glass-card evaluator" id="evaluate">
+  <div class="card-title"><div class="title-icon">▣</div><div><h2>Evaluate Answer Sheet</h2><p>Use text or upload a scanned answer sheet with OCR.</p></div></div>
+
+  <form id="gradingForm">
+    <div class="two-col">
+      <label>Student Name<input name="student_name" placeholder="Enter student name" required></label>
+      <label>Roll Number<input name="roll_number" placeholder="Optional roll number"></label>
+    </div>
+    <label>Question<input name="question" id="question" placeholder="Enter the question being evaluated" required></label>
+
+    <p class="muted">Tip: use the OCR Workspace above to populate student details and answers automatically, or enter an answer manually.</p>
+
+    <div class="two-col">
+      <label>Student Answer<textarea name="student_answer" id="studentAnswer" rows="7" placeholder="Enter or OCR-extract the student's answer..." required></textarea></label>
+      <label>Master Answer / Marking Scheme<textarea name="master_answer" id="masterAnswer" rows="7" placeholder="Teacher-approved answer, concepts and keywords..." required></textarea></label>
+    </div>
+
+    <div class="two-col">
+      <label>Important Keywords<input id="keywords" placeholder="photosynthesis, chlorophyll, glucose, sunlight"></label>
+      <label>Maximum Marks<input name="max_marks" type="number" min="1" value="10"></label>
+    </div>
+
+    <div class="eval-row">
+      <div class="auto"><span class="toggle on"></span><div><b>Automated Evaluation</b><small>Keyword coverage + TF-IDF text similarity</small></div></div>
+      <button class="primary" type="submit">✦ Evaluate Answer</button>
+      <button class="secondary" type="button" id="demoBtn">Load Demo</button>
+    </div>
+  </form>
+  <div class="tech-strip"><span>⚙</span><b>Pipeline</b><i>OpenCV preprocessing</i><i>Tesseract OCR</i><i>NLTK tokens</i><i>TF-IDF + cosine similarity</i><i>SQLite</i></div>
+</div>
+
+<div class="glass-card result-card">
+  <div class="card-title"><div class="title-icon purple-icon">◎</div><div><h2>Evaluation Result</h2><p>Transparent automated scoring</p></div></div>
+  <div id="emptyState" class="result-empty"><div>◎</div><h3>No evaluation yet</h3><p>Submit an answer to view keyword coverage, similarity, marks and feedback.</p></div>
+  <div id="resultState" class="hidden">
+    <div class="result-top">
+      <div class="ring" id="ring"><span id="scorePct">0%</span><small>Similarity</small></div>
+      <div class="marks-box"><small>Marks Obtained</small><strong id="marks">0 / 10</strong><span id="quality">Waiting</span><p id="resultMessage"></p></div>
+    </div>
+    <div class="score-lines"><div><span>Keyword coverage</span><b id="keywordScore">0%</b></div><div><span>TF-IDF similarity</span><b id="similarityScore">0%</b></div><div class="bar"><i id="scoreBar"></i></div></div>
+    <h3 class="highlights-title">Key Highlights</h3>
+    <ul class="highlights"><li>Meaningful answer terms compared</li><li>Master-answer similarity calculated</li><li>Final marks calculated automatically</li><li>Manual review remains available for edge cases</li></ul>
+    <div class="feedback"><b>Automated Feedback</b><p id="feedbackText"></p></div>
+  </div>
+</div>
+</section>
+
+</section>
+</details>
+<details class="advanced-tools glass-card" id="keys"><summary><strong>Advanced · Marking scheme manager</strong></summary>
+<section class="glass-card keys-card">
+  <div class="history-head"><div><h2>Marking Schemes</h2><p>Save reusable teacher-approved answer keys.</p></div></div>
+  <form id="keyForm" class="key-form">
+    <input name="title" placeholder="Scheme title" required>
+    <input name="question" placeholder="Question" required>
+    <input name="master_answer" placeholder="Master answer" required>
+    <input name="keywords" placeholder="Keywords">
+    <input name="max_marks" type="number" value="10" min="1">
+    <button class="primary" type="submit">Save Scheme</button>
+  </form>
+  <div id="keyList" class="key-list"></div>
+</section>
+</details>
+
+<section class="glass-card history-card" id="history">
+  <div class="history-head"><div><h2>Recent Evaluations</h2><p>Every evaluation is stored in SQLite for review and reporting.</p></div><button class="secondary small" id="refreshBtn">Refresh ↻</button></div>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Student</th><th>Question</th><th>Marks</th><th>Keyword</th><th>Similarity</th><th>Grade</th><th>Source</th><th>Date</th><th></th></tr></thead><tbody id="historyBody"><tr><td colspan="10" class="muted">No evaluations yet.</td></tr></tbody></table></div>
+</section>
+
+<details class="advanced-tools glass-card" id="reports"><summary><strong>About AnswerCheck AI</strong></summary>
+<section class="bottom-grid">
+  <div class="glass-card info-card"><span class="eyebrow">PROJECT OVERVIEW</span><h2>Complete evaluation pipeline.</h2><p>Upload a scanned answer sheet → preprocess with OpenCV → extract text with Tesseract → normalize with NLP → compare against the teacher's answer key → calculate marks → store the result → review the report.</p></div>
+  <div class="glass-card info-card"><span class="eyebrow">TECHNOLOGY STACK</span><div class="stack"><span>Python</span><span>Flask</span><span>OpenCV</span><span>Tesseract OCR</span><span>NLTK</span><span>Scikit-learn</span><span>SQLite</span><span>HTML/CSS/JS</span></div></div>
+</section>
+
+</details>
+<footer>✦ &nbsp; 2026 AnswerCheck AI &nbsp;|&nbsp; Automated Answer Sheet Checking System &nbsp;|&nbsp; SDG 4 — Quality Education</footer>
+</main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* Lightweight exam setup for the simplified teacher workflow. */
+const EXAM_STORE='answercheck_exams_v1';
+function getExams(){try{return JSON.parse(localStorage.getItem(EXAM_STORE)||'[]')}catch{return []}}
+function renderExams(){
+ const exams=getExams();
+ $('examList').innerHTML=exams.length?exams.map(e=>`<div class="key-item"><b>${esc(e.name)}</b><span>${esc(e.subject)} · ${esc(e.date||'Date not set')}</span><button class="secondary small" type="button" onclick="selectExam('${e.id}')">Use for evaluation</button></div>`).join(''):'<p class="muted">No examinations created yet.</p>';
+ $('activeExamSelect').innerHTML='<option value="">Select an examination</option>'+exams.map(e=>`<option value="${e.id}">${esc(e.name)} — ${esc(e.subject)}</option>`).join('');
+ const active=localStorage.getItem('answercheck_active_exam');if(active && exams.some(e=>e.id===active)) $('activeExamSelect').value=active;
+}
+function selectExam(id){$('activeExamSelect').value=id;localStorage.setItem('answercheck_active_exam',id);document.querySelector('#evaluation').scrollIntoView({behavior:'smooth'});}
+$('examForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const exam={id:'exam_'+Date.now(),name:f.get('exam_name'),subject:f.get('subject'),date:f.get('exam_date')};const exams=getExams();exams.unshift(exam);localStorage.setItem(EXAM_STORE,JSON.stringify(exams));localStorage.setItem('answercheck_active_exam',exam.id);e.target.reset();renderExams();};
+$('activeExamSelect').onchange=e=>localStorage.setItem('answercheck_active_exam',e.target.value);
+
+const form=$("gradingForm");
+let currentOcrFile="";
+
+
+let detectedQuestionData=[];
+let detectedAnswerData=[];
+async function uploadForOCR(endpoint,inputId,label){
+  const file=$(inputId).files[0];
+  if(!file){$('ocrWorkspaceStatus').textContent=`Select a ${label} file first.`;return null}
+  const fd=new FormData();fd.append('document',file);
+  $('ocrWorkspaceStatus').textContent=`Reading ${label}…`; 
+  try{const r=await fetch(endpoint,{method:'POST',body:fd});const d=await r.json();if(!r.ok)throw new Error(d.error||'OCR failed');return d}
+  catch(e){$('ocrWorkspaceStatus').textContent='OCR error: '+e.message;return null}
+}
+function renderDetectedQuestions(questions){
+  detectedQuestionData=questions||[];$('questionCount').textContent=`(${detectedQuestionData.length})`;
+  if(!detectedQuestionData.length){$('detectedQuestions').innerHTML='<p class="muted">No questions detected. Try a clearer scan.</p>';return}
+  $('detectedQuestions').innerHTML=detectedQuestionData.map((q,i)=>`<div class="ocr-item"><label>Question ${esc(q.question_number||i+1)}<textarea id="ocrQ${i}" rows="3">${esc(q.question||'')}</textarea></label><div class="two-col"><label>Marks<input id="ocrM${i}" type="number" min="0" step="0.5" value="${q.max_marks??''}" placeholder="Not detected"></label><button class="secondary" type="button" onclick="loadDetectedQuestion(${i})">Load in evaluator</button></div>${(q.subquestions||[]).map((sub,j)=>`<p class="muted">(${esc(sub.label)}) ${esc(sub.question)} ${sub.max_marks!=null?'— '+sub.max_marks+' marks':''}</p>`).join('')}</div>`).join('');
+}
+function renderDetectedAnswers(answers){
+  detectedAnswerData=answers||[];$('answerCount').textContent=`(${detectedAnswerData.length})`;
+  if(!detectedAnswerData.length){$('detectedAnswers').innerHTML='<p class="muted">No numbered answers detected. OCR text may need manual review.</p>';return}
+  $('detectedAnswers').innerHTML=detectedAnswerData.map((a,i)=>`<div class="ocr-item"><label>${esc(a.question_number||'Answer '+(i+1))}<textarea id="ocrA${i}" rows="4">${esc(a.answer||'')}</textarea></label><button class="secondary" type="button" onclick="loadDetectedAnswer(${i})">Load answer in evaluator</button></div>`).join('');
+}
+function loadDetectedQuestion(i){const q=detectedQuestionData[i];$('question').value=$('ocrQ'+i).value;const marks=$('ocrM'+i).value;if(marks)form.max_marks.value=marks;document.getElementById('evaluate').scrollIntoView({behavior:'smooth'});}
+function loadDetectedAnswer(i){const a=detectedAnswerData[i];$('studentAnswer').value=$('ocrA'+i).value;$('question').value=a.question_number||$('question').value;document.getElementById('evaluate').scrollIntoView({behavior:'smooth'});}
+$('questionOcrBtn').onclick=async()=>{const d=await uploadForOCR('/api/structure/question-paper','questionPaperFile','question paper');if(!d)return;renderDetectedQuestions(d.questions);$('ocrWorkspaceStatus').textContent=`Question OCR complete: ${d.questions.length} questions detected. Review/edit them below.`;};
+$('answerOcrBtn').onclick=async()=>{const d=await uploadForOCR('/api/structure/answer-sheet','structuredAnswerFile','answer sheet');if(!d)return;detectedAnswerData=d.answers||[];if(d.student_name)form.student_name.value=d.student_name;if(d.roll_number)form.roll_number.value=d.roll_number;if(d.filename)currentOcrFile=d.filename;renderDetectedAnswers(d.answers);$('ocrWorkspaceStatus').textContent=`Answer-sheet OCR complete. Student details populated${d.student_name?' for '+d.student_name:''}; review the answers below.`;};
+
+let detectedMasterKeys=[];
+function renderMasterKeys(items){
+  detectedMasterKeys=items||[];
+  if(!items.length){$('masterKeyResults').innerHTML='<p class="muted">No master answers detected. Check the OCR text or use a clearer image.</p>';return}
+  $('masterKeyResults').innerHTML='<h3>Detected Master Answers ('+items.length+')</h3>'+items.map((k,i)=>`<div class="ocr-item"><label>Question ${esc(k.question_number||i+1)}<textarea id="mkQ${i}" rows="2">${esc(k.question||'')}</textarea></label><label>Master answer<textarea id="mkA${i}" rows="5">${esc(k.master_answer||'')}</textarea></label><div class="two-col"><label>Maximum marks<input id="mkM${i}" type="number" min="1" step="0.5" value="${k.max_marks??10}"></label><label>Scheme title<input id="mkT${i}" value="Master Key — ${esc(k.question_number||'Q'+(i+1))}"></label></div><button class="primary" type="button" onclick="saveDetectedMasterKey(${i})">Save this answer key</button></div>`).join('');
+}
+async function saveDetectedMasterKey(i){
+  const payload={title:$('mkT'+i).value,question:$('mkQ'+i).value,master_answer:$('mkA'+i).value,max_marks:$('mkM'+i).value,keywords:''};
+  const r=await fetch('/api/answer-keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d=await r.json();if(!r.ok){alert(d.error||'Could not save answer key');return}
+  $('ocrWorkspaceStatus').textContent='Master answer key saved to Marking Schemes.';
+  await loadKeys();
+}
+$('masterKeyOcrBtn').onclick=async()=>{
+  const d=await uploadForOCR('/api/structure/master-key','masterKeyFile','master answer key');if(!d)return;
+  renderMasterKeys(d.answer_keys||[]);
+  $('ocrWorkspaceStatus').textContent=`Master Key OCR complete: ${(d.answer_keys||[]).length} answer key entries detected. Review and save each entry.`;
+};
+form.onsubmit=async(e)=>{
+  e.preventDefault();
+  const fd=new FormData(form); fd.set("source",currentOcrFile?"ocr":"text"); fd.set("image_filename",currentOcrFile);
+  const btn=form.querySelector(".primary"); btn.disabled=true; btn.textContent="Evaluating…";
+  try{
+    const r=await fetch("/api/evaluate",{method:"POST",body:fd}); const d=await r.json();
+    if(!r.ok) throw new Error(d.error||"Evaluation failed");
+    $("emptyState").classList.add("hidden");$("resultState").classList.remove("hidden");
+    $("scorePct").textContent=d.percentage+"%";$("marks").textContent=`${d.final_score} / ${form.max_marks.value}`;
+    $("keywordScore").textContent=d.keyword_score+"%";$("similarityScore").textContent=d.similarity_score+"%";
+    $("scoreBar").style.width=d.percentage+"%"; $("ring").style.background=`conic-gradient(#17b98b 0 ${d.percentage}%,#dcece8 ${d.percentage}% 100%)`;
+    $("quality").textContent=d.grade;$("quality").className=d.percentage>=70?"good":d.percentage>=50?"review":"low";
+    $("resultMessage").textContent=`${d.student} • Grade ${d.grade}`;
+    $("feedbackText").textContent=d.feedback;
+    await loadDashboard(); await loadHistory();
+  }catch(e){alert(e.message)}
+  finally{btn.disabled=false;btn.textContent="✦ Evaluate Answer";}
+};
+
+$("demoBtn").onclick=()=>{
+  form.student_name.value="Aarav Sharma"; form.roll_number.value="A-102";
+  $("question").value="Explain the role of photosynthesis in plants.";
+  $("studentAnswer").value="Photosynthesis allows green plants to make food using sunlight, carbon dioxide and water. Chlorophyll absorbs light energy and oxygen is released.";
+  $("masterAnswer").value="Photosynthesis is the process by which green plants produce glucose using sunlight, carbon dioxide and water. Chlorophyll captures light energy and oxygen is released as a by-product.";
+  $("keywords").value="photosynthesis, green plants, glucose, sunlight, carbon dioxide, water, chlorophyll, oxygen";
+};
+
+$("keyForm").onsubmit=async(e)=>{
+  e.preventDefault(); const fd=new FormData(e.target); const data=Object.fromEntries(fd.entries());
+  const r=await fetch("/api/answer-keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
+  const d=await r.json(); if(!r.ok){alert(d.error);return} e.target.reset(); await loadKeys();
+};
+
+async function loadDashboard(){
+  const d=await (await fetch("/api/dashboard")).json();
+  $("evalCount").textContent=d.total_evaluations;$("studentCount").textContent=d.total_students;
+  $("avgScore").textContent=d.average_accuracy+"%";$("totalMarks").textContent=d.total_marks;
+}
+async function loadHistory(){
+  const data=await (await fetch("/api/evaluations")).json(); const body=$("historyBody");
+  if(!data.length){body.innerHTML='<tr><td colspan="10" class="muted">No evaluations yet.</td></tr>';return}
+  body.innerHTML=data.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.student_name)}</b>${r.roll_number?`<small>${esc(r.roll_number)}</small>`:""}</td><td>${esc(r.question)}</td><td><b>${r.final_score}/${r.max_marks}</b></td><td>${r.source==="Gemini Vision"?"—":r.keyword_score+"%"}</td><td>${r.source==="Gemini Vision"?"—":r.similarity_score+"%"}</td><td><span class="status-pill ${r.percentage>=70?"good":r.percentage>=50?"review":"low"}">${esc(r.grade)}</span></td><td>${esc(r.source)}</td><td>${r.created_at}</td><td><button class="delete" onclick="removeEval(${r.id})">×</button></td></tr>`).join("");
+}
+async function removeEval(id){if(!confirm("Delete this evaluation?"))return;await fetch("/api/evaluations/"+id,{method:"DELETE"});await loadDashboard();await loadHistory()}
+async function loadKeys(){
+  const data=await (await fetch("/api/answer-keys")).json();
+  $("keyList").innerHTML=data.length?data.map(k=>`<div class="key-item"><b>${esc(k.title)}</b><span>${esc(k.question)}</span><small>${k.max_marks} marks • ${esc(k.keywords||"No keywords")}</small><button onclick="useKey(${JSON.stringify(k).replace(/"/g,"&quot;")})">Use</button></div>`).join(""):"<div class='muted'>No marking schemes saved yet.</div>";
+}
+function useKey(k){$("question").value=k.question;$("masterAnswer").value=k.master_answer;form.max_marks.value=k.max_marks;document.getElementById("evaluate").scrollIntoView({behavior:"smooth"})}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+$("refreshBtn").onclick=()=>{loadDashboard();loadHistory()}; loadDashboard();loadHistory();loadKeys();refreshGeminiKeys();renderExams();
+
+
+// Gemini Vision whole-paper grading: images/PDF go directly to Gemini, no Tesseract similarity.
+async function refreshGeminiKeys(){
+  try{
+    const keys=await (await fetch('/api/answer-keys')).json();
+    $('geminiKeySelect').innerHTML='<option value="">Use all saved answer keys</option>'+
+      keys.map(k=>`<option value="${k.id}">${esc(k.title)} — ${esc(k.question)} (${k.max_marks} marks)</option>`).join('');
+  }catch(e){}
+}
+$('geminiPaperForm').onsubmit=async(e)=>{
+  e.preventDefault();
+  const file=$('geminiPaperFile').files[0]; if(!file)return;
+  const fd=new FormData(e.target);
+  const btn=$('geminiGradeBtn'); btn.disabled=true;btn.textContent='Gemini is reading and grading…';
+  $('geminiPaperStatus').textContent='Sending original document to Gemini Vision. This may take a minute.';
+  $('geminiPaperResults').innerHTML='';
+  try{
+    const r = await fetch('/api/evaluate-paper', {
+    method: 'POST',
+    body: fd
+});
+
+const text = await r.text();
+
+let d;
+
+try {
+    d = JSON.parse(text);
+} catch {
+    console.error("Backend response:", text);
+    throw new Error(
+        `Server returned invalid JSON (HTTP ${r.status}). Check Flask terminal.`
+    );
+}
+    if(!r.ok)throw new Error(d.error||'Paper grading failed');
+    const answers=d.answers||[];
+    $('geminiPaperStatus').textContent=`${d.student_name||'Student not identified'} • Roll: ${d.roll_number||'not detected'} • ${d.overall_percentage??0}% • ${d.total_awarded??0}/${d.total_max??0} marks • TEACHER REVIEW REQUIRED`;
+    $('geminiPaperResults').innerHTML=`<div class="ocr-item"><h3>Overall feedback</h3><p>${esc(d.overall_feedback||'')}</p>${(d.review_notes||[]).map(n=>`<p class="status-pill review">${esc(n)}</p>`).join('')}</div>`+
+      answers.map(a=>`<div class="ocr-item"><h3>${esc(a.question_number||'Question')} — ${esc(a.awarded_marks??0)}/${esc(a.max_marks??0)} marks <span class="status-pill ${a.review_required||a.confidence!=='high'?'review':'good'}">${esc(a.confidence||'review')} confidence</span></h3><p><b>Answer read:</b> ${esc(a.student_answer_transcription||'')}</p><p>${esc(a.feedback||'')}</p><p><b>Credited:</b> ${esc((a.credited_points||[]).join(', ')||'—')}</p><p><b>Missed:</b> ${esc((a.missed_points||[]).join(', ')||'—')}</p>${a.review_required?'<p class="status-pill review">Review this answer</p>':''}</div>`).join('');
+    $('geminiPaperStatus').textContent += ` • Saved to Recent Evaluations (ID: ${d.evaluation_id})`;
+    await Promise.all([loadDashboard(), loadHistory()]);
+  }catch(err){$('geminiPaperStatus').textContent='Error: '+err.message}
+  finally{btn.disabled=false;btn.textContent='✦ Grade complete paper with Gemini'}
+};
+
+let slide=0;const slides=document.querySelectorAll(".bg-slide");setInterval(()=>{slides[slide].classList.remove("active");slide=(slide+1)%slides.length;slides[slide].classList.add("active")},7000);
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+
+.venv/
+__pycache__/
+*.pyc
+
+answercheck.db
+answercheck.db-shm
+answercheck.db-wal
+
+uploads/*
+!uploads/.gitkeep
+
+.DS_Store
